@@ -91,7 +91,7 @@ public abstract class EcdsaUser extends AbstractUser implements ClusterSerializa
 		return pos;
 	}
 
-	// requires knowledge of EcdsaAuthUser implementation to implement
+	// requires knowledge of EcdsaUserData implementation to implement
 	protected abstract EcdsaUserData principalFromJson(String principal);
 
 }
