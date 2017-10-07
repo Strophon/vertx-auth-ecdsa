@@ -1,4 +1,4 @@
-package com.foodfeudgame.auth;
+package io.vertx.ext.auth.ecdsa;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

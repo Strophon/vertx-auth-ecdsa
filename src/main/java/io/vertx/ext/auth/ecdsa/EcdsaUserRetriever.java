@@ -1,4 +1,4 @@
-package com.foodfeudgame.auth;
+package io.vertx.ext.auth.ecdsa;
 
 public interface EcdsaUserRetriever {
 	public EcdsaUserData getUserData(int userId);
