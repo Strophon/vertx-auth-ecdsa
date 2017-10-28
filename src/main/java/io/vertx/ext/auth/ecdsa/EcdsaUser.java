@@ -1,6 +1,9 @@
 package io.vertx.ext.auth.ecdsa;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
+
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -36,13 +39,10 @@ public abstract class EcdsaUser extends AbstractUser implements ClusterSerializa
 
 	@Override
 	protected void doIsPermitted(String permission, Handler<AsyncResult<Boolean>> resultHandler) {
-		for(String s : Json.decodeValue(user.getAuthorities(), String[].class)) {
-			if(s.equalsIgnoreCase(permission)) {
-				resultHandler.handle(Future.succeededFuture(true));
-				return;
-			}
-		}
-		resultHandler.handle(Future.succeededFuture(false));
+		Set<String> authorities = Json.decodeValue(
+										user.getAuthorities(), new TypeReference<Set<String>>(){});
+		permission = permission.toUpperCase();
+		resultHandler.handle(Future.succeededFuture(authorities.contains(permission)));
 	}
 
 	@Override
