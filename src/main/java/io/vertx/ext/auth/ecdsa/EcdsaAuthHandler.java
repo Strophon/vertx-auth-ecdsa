@@ -16,9 +16,6 @@ public class EcdsaAuthHandler extends AuthHandlerImpl {
 
 	public EcdsaAuthHandler(AuthProvider authProvider) {
 		super(authProvider);
-		boolean isEcdsa = authProvider instanceof EcdsaAuthProvider;
-		if(!isEcdsa)
-			throw new IllegalArgumentException("Must pass in an instance of EcdsaAuthProvider");
 	}
 
 	@Override
@@ -38,12 +35,11 @@ public class EcdsaAuthHandler extends AuthHandlerImpl {
 			int userId = Integer.parseInt(parts[0]);
 			String challenge = parts[1];
 			String signature = parts[2];
-
-			EcdsaAuthProvider eap = (EcdsaAuthProvider) authProvider;
 			
-			JsonObject authInfo = new JsonObject().put(eap.getUserIdParam(), userId)
-					.put(eap.getChallengeParam(), challenge)
-					.put(eap.getSignatureParam(), signature);
+			JsonObject authInfo = new JsonObject()
+					.put(EcdsaAuthProvider.USER_ID_PARAM, userId)
+					.put(EcdsaAuthProvider.CHALLENGE_PARAM, challenge)
+					.put(EcdsaAuthProvider.SIGNATURE_PARAM, signature);
 			
 			handler.handle(Future.succeededFuture(authInfo));
 		} catch (ArrayIndexOutOfBoundsException e) {
