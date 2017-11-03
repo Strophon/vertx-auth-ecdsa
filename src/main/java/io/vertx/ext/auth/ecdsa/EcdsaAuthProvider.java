@@ -13,13 +13,10 @@ import java.security.SignatureException;
 import org.bitcoinj.core.ECKey;
 
 public class EcdsaAuthProvider implements AuthProvider {
-	private static final String DEFAULT_USER_ID_PARAM = "userId";
-	private static final String DEFAULT_CHALLENGE_PARAM = "challenge";
-	private static final String DEFAULT_SIGNATURE_PARAM = "signature";
+	public static final String USER_ID_PARAM = "userId";
+	public static final String CHALLENGE_PARAM = "challenge";
+	public static final String SIGNATURE_PARAM = "signature";
 
-	private String userIdParam;
-	private String challengeParam;
-	private String signatureParam;
 	private Vertx vertx;
 	private EcdsaAuthCache cache;
 	private EcdsaUserRetriever retriever;
@@ -28,31 +25,6 @@ public class EcdsaAuthProvider implements AuthProvider {
 		this.vertx = vertx;
 		this.cache = cache;
 		this.retriever = retriever;
-		this.userIdParam = DEFAULT_USER_ID_PARAM;
-		this.challengeParam = DEFAULT_CHALLENGE_PARAM;
-		this.signatureParam = DEFAULT_SIGNATURE_PARAM;
-	}
-	
-	public String getUserIdParam() {
-		return userIdParam;
-	}
-	public EcdsaAuthProvider setUserIdParam(String userIdParam) {
-		this.userIdParam = userIdParam;
-		return this;
-	}
-	public String getChallengeParam() {
-		return challengeParam;
-	}
-	public EcdsaAuthProvider setChallengeParam(String challengeParam) {
-		this.challengeParam = challengeParam;
-		return this;
-	}
-	public String getSignatureParam() {
-		return signatureParam;
-	}
-	public EcdsaAuthProvider setSignatureParam(String signatureParam) {
-		this.signatureParam = signatureParam;
-		return this;
 	}
 
 	@Override
@@ -61,9 +33,9 @@ public class EcdsaAuthProvider implements AuthProvider {
 		String challenge;
 		String signature;
 		try {
-			userId = authInfo.getInteger(userIdParam);
-			challenge = authInfo.getString(challengeParam);
-			signature = authInfo.getString(signatureParam);
+			userId = authInfo.getInteger(USER_ID_PARAM);
+			challenge = authInfo.getString(CHALLENGE_PARAM);
+			signature = authInfo.getString(SIGNATURE_PARAM);
 		} catch(ClassCastException e) {
 			resultHandler.handle(Future.failedFuture("Invalid auth info format"));
 			return;
@@ -89,9 +61,9 @@ public class EcdsaAuthProvider implements AuthProvider {
 									ECKey.fromPublicOnly(userData.getPubkey())
 											.verifyMessage(challenge, signature);
 									authenticated = true;
-								} catch(SignatureException e) { // catch sig exceptions, NPEs
+								} catch(SignatureException e) {
 								} catch(NullPointerException e) {
-								}  // do nothing if exception thrown
+								}
 
 								if(authenticated) {
 									future.complete(
