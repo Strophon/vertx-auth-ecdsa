@@ -87,7 +87,7 @@ public abstract class EcdsaUser extends AbstractUser implements ClusterSerializa
 		user = sb.length() == 0 ? null : principalFromJson(sb.toString());
 		sb.setLength(0);
 		pos = readString(buffer, pos, sb);
-		challenge = sb.toString();
+		challenge = sb.length() == 0 ? null : sb.toString();
 		return pos;
 	}
 

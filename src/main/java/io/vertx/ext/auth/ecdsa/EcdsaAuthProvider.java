@@ -47,41 +47,39 @@ public class EcdsaAuthProvider implements AuthProvider {
 		}
 		
 		// first verify that the presented challenge matches the one stored in cache
-		cache.getChallenge(userId.intValue(), res -> {
+		cache.getChallenge(userId, res -> {
 			if(res.succeeded() && res.result() != null) {
-				if(secureEqualsIgnoreCase(res.result(), challenge)) {
+				if(secureEquals(res.result(), challenge)) {
 					// next, get user from DB and verify signature
-					vertx.<EcdsaUser>executeBlocking(
-							future -> {
-								EcdsaUserData userData = retriever.getUserData(userId);
-								
-								boolean authenticated = false;
+					vertx.<EcdsaUser>executeBlocking(future -> {
+						EcdsaUserData userData = retriever.getUserData(userId);
 
-								try { // verifyMessage() throws a SignatureException if sig invalid
-									ECKey.fromPublicOnly(userData.getPubkey())
-											.verifyMessage(challenge, signature);
-									authenticated = true;
-								} catch(SignatureException e) {
-								} catch(NullPointerException e) {
-								}
+						boolean authenticated = false;
 
-								if(authenticated) {
-									future.complete(
-											retriever.getAuthorizedUser(userData));
-								} else {
-									future.fail("Auth failed");
-								}
-							},
-							false, // not ordered
-							blockingResult -> {
-								if(blockingResult.succeeded()) {
-									resultHandler.handle(
-											Future.succeededFuture(blockingResult.result()));
-								} else {
-									resultHandler.handle(
-											Future.failedFuture("Authentication failed."));
-								}
-							});
+						try { // verifyMessage() throws a SignatureException if sig invalid
+							ECKey.fromPublicOnly(userData.getPubkey())
+									.verifyMessage(challenge, signature);
+							authenticated = true;
+						} catch(SignatureException | NullPointerException e) {
+						}
+
+						if(authenticated) {
+							future.complete(
+									retriever.getAuthorizedUser(userData, challenge));
+						} else {
+							future.fail("Auth failed");
+						}
+					},
+					false, // not ordered
+					blockingResult -> {
+						if(blockingResult.succeeded()) {
+							resultHandler.handle(
+									Future.succeededFuture(blockingResult.result()));
+						} else {
+							resultHandler.handle(
+									Future.failedFuture("Authentication failed."));
+						}
+					});
 				} else {
 					resultHandler.handle(Future.failedFuture("Authentication failed."));
 				}
@@ -91,16 +89,13 @@ public class EcdsaAuthProvider implements AuthProvider {
 		});
 	}
 	
-	private static boolean secureEqualsIgnoreCase(String ours, String theirs) {
+	public static boolean secureEquals(String ours, String theirs) {
 		// prevents information leakage due to more-equal values taking longer to compare
-		ours = ours.toUpperCase();
-		theirs = theirs.toUpperCase();
-		
 		boolean result = ours.length() == theirs.length();
 		int i = 0;
-		for(i = 0; i < ours.length(); i++)
+		for( ; i < ours.length(); i++)
 			result &= ours.charAt(i) == theirs.charAt(i % theirs.length());
-		
+
 		if(i != ours.length())
 			throw new RuntimeException("Compiler got sneaky!");
 		

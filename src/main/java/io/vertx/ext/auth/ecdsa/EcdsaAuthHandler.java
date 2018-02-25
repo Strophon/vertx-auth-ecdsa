@@ -44,10 +44,8 @@ public class EcdsaAuthHandler extends AuthHandlerImpl {
 			handler.handle(Future.succeededFuture(authInfo));
 		} catch (ArrayIndexOutOfBoundsException e) {
 			context.fail(401);
-			return;
 		} catch (IllegalArgumentException | NullPointerException e) {
 			context.fail(e);
-			return;
 		}
 	}
 }
