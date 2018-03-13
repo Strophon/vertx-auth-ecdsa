@@ -29,7 +29,7 @@ public abstract class EcdsaUser extends AbstractUser implements ClusterSerializa
 
 	@Override
 	public JsonObject principal() {
-		return new JsonObject(Json.encode(user));
+		return new JsonObject().put("user", Json.encode(user)).put("challenge", challenge);
 	}
 
 	@Override
@@ -47,51 +47,59 @@ public abstract class EcdsaUser extends AbstractUser implements ClusterSerializa
 
 	@Override
 	public void writeToBuffer(Buffer buff) {
-		writePrincipal(buff);
+		writeUserData(buff);
 		super.writeToBuffer(buff);
 	}
 
 	@Override
 	public int readFromBuffer(int pos, Buffer buffer) {
-		pos = readPrincipal(buffer, pos);
+		pos = readUserData(buffer, pos);
 		pos = super.readFromBuffer(pos, buffer);
 		return pos;
 	}
-	
-	protected void writeString(String str, Buffer buff) {
-		buff.appendInt(str == null ? 0 : str.length());
-		if (str != null) {
-			byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
-			buff.appendInt(bytes.length).appendBytes(bytes);
-		}
-	}
-	
-	private void writePrincipal(Buffer buff) {
-		String principal = user == null ? null : Json.encode(user);
-		writeString(principal, buff);
+
+	private void writeUserData(Buffer buff) {
+		String userJson = user == null ? null : Json.encode(user);
+		writeString(userJson, buff);
 		writeString(challenge, buff);
 	}
-	
-	protected int readString(Buffer buffer, int pos, StringBuilder sb) {
-		int len = buffer.getInt(pos);
-		pos += 4;
-		byte[] bytes = buffer.getBytes(pos, pos + len);
-		pos += len;
-		sb.append(new String(bytes, StandardCharsets.UTF_8));
+
+	private int readUserData(Buffer buffer, int pos) {
+		StringBuilder sb = new StringBuilder();
+
+		pos = readString(buffer, pos, sb);
+		user = sb.length() == 0 ? null : userFromJson(sb.toString());
+
+		sb.setLength(0);
+
+		pos = readString(buffer, pos, sb);
+		challenge = sb.length() == 0 ? null : sb.toString();
+
 		return pos;
 	}
 
-	protected int readPrincipal(Buffer buffer, int pos) {
-		StringBuilder sb = new StringBuilder();
-		pos = readString(buffer, pos, sb);
-		user = sb.length() == 0 ? null : principalFromJson(sb.toString());
-		sb.setLength(0);
-		pos = readString(buffer, pos, sb);
-		challenge = sb.length() == 0 ? null : sb.toString();
+	private void writeString(String str, Buffer buff) {
+		if (str != null) {
+			byte[] bytes = str.getBytes(StandardCharsets.UTF_8);
+			buff.appendInt(bytes.length).appendBytes(bytes);
+		} else {
+			buff.appendInt(0);
+		}
+	}
+
+	private int readString(Buffer buffer, int pos, StringBuilder sb) {
+		int len = buffer.getInt(pos);
+		pos += 4;
+
+		byte[] bytes = buffer.getBytes(pos, pos + len);
+		pos += len;
+
+		sb.append(new String(bytes, StandardCharsets.UTF_8));
+
 		return pos;
 	}
 
 	// requires knowledge of EcdsaUserData implementation to implement
-	protected abstract EcdsaUserData principalFromJson(String principal);
+	protected abstract EcdsaUserData userFromJson(String userJson);
 
 }
