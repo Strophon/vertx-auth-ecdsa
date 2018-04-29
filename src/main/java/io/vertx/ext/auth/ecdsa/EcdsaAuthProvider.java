@@ -56,18 +56,22 @@ public class EcdsaAuthProvider implements AuthProvider {
 
 						boolean authenticated = false;
 
-						try { // verifyMessage() throws a SignatureException if sig invalid
+						try {
 							ECKey.fromPublicOnly(userData.getPubkey())
 									.verifyMessage(challenge, signature);
 							authenticated = true;
 						} catch(SignatureException | NullPointerException e) {
+							// verifyMessage() throws a SignatureException if sig invalid
+
+							// NPE indicates either challenge/signature not provided,
+							// or user/pubkey is null
 						}
 
 						if(authenticated) {
 							future.complete(
 									retriever.getAuthorizedUser(userData, challenge));
 						} else {
-							future.fail("Auth failed");
+							future.fail("Authentication failed");
 						}
 					},
 					false, // not ordered
