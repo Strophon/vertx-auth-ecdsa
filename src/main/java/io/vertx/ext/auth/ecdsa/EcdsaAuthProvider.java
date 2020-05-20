@@ -58,7 +58,7 @@ public class EcdsaAuthProvider implements AuthProvider {
 
                         try {
                             ECKey.fromPublicOnly(userData.getPubkey())
-								 .verifyMessage(challenge, signature);
+                                 .verifyMessage(challenge, signature);
                             authenticated = true;
                         } catch(SignatureException | NullPointerException e) {
                             // verifyMessage() throws a SignatureException if sig invalid
@@ -98,12 +98,12 @@ public class EcdsaAuthProvider implements AuthProvider {
         boolean result = ours.length() == theirs.length();
         int i = 0;
         for( ; i < ours.length(); i++) {
-			result &= ours.charAt(i) == theirs.charAt(i % theirs.length());
-		}
+            result &= ours.charAt(i) == theirs.charAt(i % theirs.length());
+        }
 
         if(i != ours.length()) {
-			throw new RuntimeException("Compiler got sneaky!");
-		}
+            throw new RuntimeException("Compiler got sneaky!");
+        }
 
         return result;
     }
