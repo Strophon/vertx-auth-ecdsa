@@ -20,7 +20,7 @@ public class EcdsaAuthHandler extends AuthHandlerImpl {
 
     @Override
     public void parseCredentials(RoutingContext context,
-                                        Handler<AsyncResult<JsonObject>> handler) {
+								 Handler<AsyncResult<JsonObject>> handler) {
         HttpServerRequest request = context.request();
         String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
 

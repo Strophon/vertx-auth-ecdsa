@@ -58,7 +58,7 @@ public class EcdsaAuthProvider implements AuthProvider {
 
                         try {
                             ECKey.fromPublicOnly(userData.getPubkey())
-                                    .verifyMessage(challenge, signature);
+								 .verifyMessage(challenge, signature);
                             authenticated = true;
                         } catch(SignatureException | NullPointerException e) {
                             // verifyMessage() throws a SignatureException if sig invalid
